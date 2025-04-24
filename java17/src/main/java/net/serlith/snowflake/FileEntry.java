@@ -1,4 +1,4 @@
-package io.papermc.paperclip;
+package net.serlith.snowflake;
 
 import java.io.BufferedReader;
 import java.io.IOException;

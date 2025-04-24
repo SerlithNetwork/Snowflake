@@ -7,7 +7,7 @@
  * MIT License
  */
 
-package io.papermc.paperclip;
+package net.serlith.snowflake;
 
 import java.lang.reflect.Method;
 
@@ -21,7 +21,7 @@ public final class Main {
         }
 
         try {
-            final Class<?> paperclipClass = Class.forName("io.papermc.paperclip.Paperclip");
+            final Class<?> paperclipClass = Class.forName("net.serlith.snowflake.Snowflake");
             final Method mainMethod = paperclipClass.getMethod("main", String[].class);
             mainMethod.invoke(null, (Object) args);
         } catch (final Exception e) {

@@ -7,7 +7,7 @@
  * MIT License
  */
 
-package io.papermc.paperclip;
+package net.serlith.snowflake;
 
 import io.sigpipe.jbsdiff.InvalidHeaderException;
 import io.sigpipe.jbsdiff.Patch;

@@ -4,6 +4,10 @@ plugins {
     `maven-publish`
 }
 
+repositories {
+    maven("https://jitpack.io")
+}
+
 subprojects {
     apply(plugin = "java")
 
@@ -12,7 +16,7 @@ subprojects {
     }
 }
 
-val mainClass = "io.papermc.paperclip.Main"
+val mainClass = "net.serlith.snowflake.Main"
 
 tasks.jar {
     val java6Jar = project(":java6").tasks.named("jar")
@@ -66,10 +70,10 @@ publishing {
             withoutBuildIdentifier()
 
             pom {
-                val repoPath = "PaperMC/Paperclip"
+                val repoPath = "SerlithNetwork/Snowflake"
                 val repoUrl = "https://github.com/$repoPath"
 
-                name.set("Paperclip")
+                name.set("Snowflake")
                 description.set(project.description)
                 url.set(repoUrl)
                 packaging = "jar"
@@ -105,16 +109,7 @@ publishing {
         }
 
         repositories {
-            val url = if (isSnapshot) {
-                "https://repo.papermc.io/repository/maven-snapshots/"
-            } else {
-                "https://repo.papermc.io/repository/maven-releases/"
-            }
-
-            maven(url) {
-                credentials(PasswordCredentials::class)
-                name = "paper"
-            }
+            mavenLocal()
         }
     }
 }

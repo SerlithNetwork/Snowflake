@@ -1,4 +1,4 @@
-package io.papermc.paperclip;
+package net.serlith.snowflake;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,40 +12,44 @@ import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class Paperclip {
+public final class Snowflake {
 
     public static void main(final String[] args) {
         if (Path.of("").toAbsolutePath().toString().contains("!")) {
-            System.err.println("Paperclip may not run in a directory containing '!'. Please rename the affected folder.");
+            System.err.println("Snowflake may not run in a directory containing '!'. Please rename the affected folder.");
             System.exit(1);
         }
 
         final URL[] classpathUrls = setupClasspath();
 
-        final ClassLoader parentClassLoader = Paperclip.class.getClassLoader().getParent();
+        final ClassLoader parentClassLoader = Snowflake.class.getClassLoader(); // Snowflake - Temporary fix remove .parent()
         final URLClassLoader classLoader = new URLClassLoader(classpathUrls, parentClassLoader);
 
         final String mainClassName = findMainClass();
         System.out.println("Starting " + mainClassName);
 
+        final Thread runThread = getRunThread(args, mainClassName, classLoader);
+        runThread.start();
+    }
+
+    private static Thread getRunThread(Object args, String mainClassName, URLClassLoader classLoader) {
         final Thread runThread = new Thread(() -> {
             try {
                 final Class<?> mainClass = Class.forName(mainClassName, true, classLoader);
                 final MethodHandle mainHandle = MethodHandles.lookup()
                     .findStatic(mainClass, "main", MethodType.methodType(void.class, String[].class))
                     .asFixedArity();
-                mainHandle.invoke((Object) args);
+                mainHandle.invoke(args);
             } catch (final Throwable t) {
                 throw Util.sneakyThrow(t);
             }
         }, "ServerMain");
         runThread.setContextClassLoader(classLoader);
-        runThread.start();
+        return runThread;
     }
 
     private static URL[] setupClasspath() {
@@ -89,7 +93,7 @@ public final class Paperclip {
     }
 
     private static PatchEntry[] findPatches() {
-        final InputStream patchListStream = Paperclip.class.getResourceAsStream("/META-INF/patches.list");
+        final InputStream patchListStream = Snowflake.class.getResourceAsStream("/META-INF/patches.list");
         if (patchListStream == null) {
             return new PatchEntry[0];
         }
@@ -119,7 +123,7 @@ public final class Paperclip {
         return findFileEntries("libraries.list");
     }
     private static FileEntry[] findFileEntries(final String fileName) {
-        final InputStream libListStream = Paperclip.class.getResourceAsStream("/META-INF/" + fileName);
+        final InputStream libListStream = Snowflake.class.getResourceAsStream("/META-INF/" + fileName);
         if (libListStream == null) {
             return null;
         }
