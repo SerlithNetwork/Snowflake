@@ -21,11 +21,12 @@ repositories {
 
 dependencies {
     implementation("io.sigpipe:jbsdiff:1.0")
+    implementation("com.google.jimfs:jimfs:1.3.0")
 }
 
 tasks.shadowJar {
     val prefix = "net.serlith.snowflake.libs"
-    listOf("org.apache", "org.tukaani", "io.sigpipe").forEach { pack ->
+    listOf("org.apache", "org.tukaani", "io.sigpipe", "com.google").forEach { pack ->
         relocate(pack, "$prefix.$pack")
     }
 

@@ -1,5 +1,8 @@
 package net.serlith.snowflake;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -173,8 +176,10 @@ public final class Snowflake {
                 originalJarFs = FileSystems.newFileSystem(originalJar);
             }
 
+            final FileSystem patchedJarFs = Jimfs.newFileSystem(Configuration.forCurrentPlatform());
             try {
                 final Path originalRootDir;
+                final Path patchedRootDir = patchedJarFs.getPath("/");
                 if (originalJarFs == null) {
                     originalRootDir = null;
                 } else {
@@ -189,11 +194,12 @@ public final class Snowflake {
                 final FileEntry[] libraryEntries = findLibraryEntries();
                 final var librariesMap = new HashMap<String, URL>();
                 urls.putIfAbsent("libraries", librariesMap);
-                extractEntries(librariesMap, patches, originalRootDir, repoDir, libraryEntries, "libraries");
+                extractEntries(librariesMap, patches, patchedRootDir, repoDir, libraryEntries, "libraries");
             } finally {
                 if (originalJarFs != null) {
                     originalJarFs.close();
                 }
+                patchedJarFs.close();
             }
         } catch (final IOException e) {
             throw Util.fail("Failed to extract jar files", e);
