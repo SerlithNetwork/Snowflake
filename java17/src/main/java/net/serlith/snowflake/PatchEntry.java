@@ -86,9 +86,9 @@ record PatchEntry(
         );
     }
 
-    void applyPatch(final Map<String, Map<String, URL>> urls, final Path originalRootDir, final Path repoDir) throws IOException {
+    void applyPatch(final Map<String, Map<String, URL>> urls, final Path originalRootDir, final Path repoDir, final Path memDir) throws IOException {
         final Path inputDir = originalRootDir.resolve("META-INF").resolve(this.location);
-        final Path targetDir = repoDir.resolve(this.location);
+        final Path targetDir = this.location.equalsIgnoreCase("versions") ? memDir.resolve(this.location) : repoDir.resolve(this.location);
 
         final Path inputFile = inputDir.resolve(this.originalPath);
         final Path outputFile = targetDir.resolve(this.outputPath);

@@ -1,5 +1,8 @@
 package net.serlith.snowflake;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class Snowflake {
+
+    private static final FileSystem jimFs = Jimfs.newFileSystem(Configuration.forCurrentPlatform());
 
     public static void main(final String[] args) {
         if (Path.of("").toAbsolutePath().toString().contains("!")) {
@@ -54,6 +59,7 @@ public final class Snowflake {
 
     private static URL[] setupClasspath() {
         final var repoDir = Path.of(System.getProperty("bundlerRepoDir", ""));
+        final var memDir = jimFs.getPath(System.getProperty("bundlerRepoDir", ""));
 
         final PatchEntry[] patches = findPatches();
         final DownloadContext downloadContext = findDownloadContext();
@@ -73,7 +79,7 @@ public final class Snowflake {
             baseFile = null;
         }
 
-        final Map<String, Map<String, URL>> classpathUrls = extractAndApplyPatches(baseFile, patches, repoDir);
+        final Map<String, Map<String, URL>> classpathUrls = extractAndApplyPatches(baseFile, patches, repoDir, memDir);
 
         // Exit if user has set `paperclip.patchonly` system property to `true`
         if (Boolean.getBoolean("paperclip.patchonly")) {
@@ -148,21 +154,21 @@ public final class Snowflake {
         }
     }
 
-    private static Map<String, Map<String, URL>> extractAndApplyPatches(final Path originalJar, final PatchEntry[] patches, final Path repoDir) {
+    private static Map<String, Map<String, URL>> extractAndApplyPatches(final Path originalJar, final PatchEntry[] patches, final Path repoDir, final Path memDir) {
         if (originalJar == null && patches.length > 0) {
             throw new IllegalArgumentException("Patch data found without patch target");
         }
 
         // First extract any non-patch files
-        final Map<String, Map<String, URL>> urls = extractFiles(patches, originalJar, repoDir);
+        final Map<String, Map<String, URL>> urls = extractFiles(patches, originalJar, repoDir, memDir);
 
         // Next apply any patches that we have
-        applyPatches(urls, patches, originalJar, repoDir);
+        applyPatches(urls, patches, originalJar, repoDir, memDir);
 
         return urls;
     }
 
-    private static Map<String, Map<String, URL>> extractFiles(final PatchEntry[] patches, final Path originalJar, final Path repoDir) {
+    private static Map<String, Map<String, URL>> extractFiles(final PatchEntry[] patches, final Path originalJar, final Path repoDir, final Path memDir) {
         final var urls = new HashMap<String, Map<String, URL>>();
 
         try {
@@ -184,7 +190,7 @@ public final class Snowflake {
                 final var versionsMap = new HashMap<String, URL>();
                 urls.putIfAbsent("versions", versionsMap);
                 final FileEntry[] versionEntries = findVersionEntries();
-                extractEntries(versionsMap, patches, originalRootDir, repoDir, versionEntries, "versions");
+                extractEntries(versionsMap, patches, originalRootDir, memDir, versionEntries, "versions");
 
                 final FileEntry[] libraryEntries = findLibraryEntries();
                 final var librariesMap = new HashMap<String, URL>();
@@ -226,7 +232,8 @@ public final class Snowflake {
         final Map<String, Map<String, URL>> urls,
         final PatchEntry[] patches,
         final Path originalJar,
-        final Path repoDir
+        final Path repoDir,
+        final Path memDir
     ) {
         if (patches.length == 0) {
             return;
@@ -239,7 +246,7 @@ public final class Snowflake {
             final Path originalRootDir = originalFs.getPath("/");
 
             for (final PatchEntry patch : patches) {
-                patch.applyPatch(urls, originalRootDir, repoDir);
+                patch.applyPatch(urls, originalRootDir, repoDir, memDir);
             }
         } catch (final IOException e) {
             throw Util.fail("Failed to apply patches", e);

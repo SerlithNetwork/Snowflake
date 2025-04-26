@@ -1,6 +1,16 @@
-Paperclip
+Snowflake
 =========
-A binary patch distribution system for Paper.
+A Paperclip fork, binary patch distribution system for Paper.
+
+Keeps the binary patched jar in memory, never writing it into the disk. \
+This effectively means the patch and server remap has to be done everytime the server launches.
+
+### Snowflake is NOT a DRM solution
+This was mostly an experiment. \
+Maybe can be used for sharing your Paper fork with non-experienced friends without them peeking into the `/versions` folder.
+
+Paperclip
+--------
 
 Paperclip is the launcher for the Paper Minecraft server. It uses a [bsdiff](http://www.daemonology.net/bsdiff/) patch
 between the vanilla Minecraft server and the modified Paper server to generate the Paper Minecraft server immediately
