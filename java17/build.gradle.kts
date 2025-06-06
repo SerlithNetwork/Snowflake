@@ -24,10 +24,11 @@ dependencies {
 }
 
 tasks.shadowJar {
-    val prefix = "paperclip.libs"
+    val prefix = "net.serlith.snowflake.libs"
     listOf("org.apache", "org.tukaani", "io.sigpipe").forEach { pack ->
         relocate(pack, "$prefix.$pack")
     }
+    relocate("io.papermc.paperclip", "net.serlith.snowflake")
 
     exclude("META-INF/LICENSE.txt")
     exclude("META-INF/NOTICE.txt")

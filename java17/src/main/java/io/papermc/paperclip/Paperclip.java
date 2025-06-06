@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -11,6 +12,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,6 +51,15 @@ public final class Paperclip {
 
     private static URL[] setupClasspath() {
         final var repoDir = Path.of(System.getProperty("bundlerRepoDir", ""));
+        final Path versionDir;
+        try {
+            versionDir = Files.createTempDirectory("");
+            versionDir.toFile().deleteOnExit();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (SecurityException e) {
+            throw new SecurityException("Snowflake doesn't have permissions to create/delete directories");
+        }
 
         final PatchEntry[] patches = findPatches();
         final DownloadContext downloadContext = findDownloadContext();
@@ -68,7 +79,7 @@ public final class Paperclip {
             baseFile = null;
         }
 
-        final Map<String, Map<String, URL>> classpathUrls = extractAndApplyPatches(baseFile, patches, repoDir);
+        final Map<String, Map<String, URL>> classpathUrls = extractAndApplyPatches(baseFile, patches, repoDir, versionDir);
 
         // Exit if user has set `paperclip.patchonly` system property to `true`
         if (Boolean.getBoolean("paperclip.patchonly")) {
@@ -143,7 +154,7 @@ public final class Paperclip {
         }
     }
 
-    private static Map<String, Map<String, URL>> extractAndApplyPatches(final Path originalJar, final PatchEntry[] patches, final Path repoDir) {
+    private static Map<String, Map<String, URL>> extractAndApplyPatches(final Path originalJar, final PatchEntry[] patches, final Path repoDir, final Path versionDir) {
         if (originalJar == null && patches.length > 0) {
             throw new IllegalArgumentException("Patch data found without patch target");
         }
@@ -152,7 +163,7 @@ public final class Paperclip {
         final Map<String, Map<String, URL>> urls = extractFiles(patches, originalJar, repoDir);
 
         // Next apply any patches that we have
-        applyPatches(urls, patches, originalJar, repoDir);
+        applyPatches(urls, patches, originalJar, repoDir, versionDir);
 
         return urls;
     }
@@ -221,7 +232,8 @@ public final class Paperclip {
         final Map<String, Map<String, URL>> urls,
         final PatchEntry[] patches,
         final Path originalJar,
-        final Path repoDir
+        final Path repoDir,
+        final Path versionDir
     ) {
         if (patches.length == 0) {
             return;
@@ -234,7 +246,7 @@ public final class Paperclip {
             final Path originalRootDir = originalFs.getPath("/");
 
             for (final PatchEntry patch : patches) {
-                patch.applyPatch(urls, originalRootDir, repoDir);
+                patch.applyPatch(urls, originalRootDir, repoDir, versionDir);
             }
         } catch (final IOException e) {
             throw Util.fail("Failed to apply patches", e);
