@@ -66,10 +66,10 @@ publishing {
             withoutBuildIdentifier()
 
             pom {
-                val repoPath = "PaperMC/Paperclip"
+                val repoPath = "SerlithNetwork/Snowflake"
                 val repoUrl = "https://github.com/$repoPath"
 
-                name.set("Paperclip")
+                name.set("Snowflake")
                 description.set(project.description)
                 url.set(repoUrl)
                 packaging = "jar"

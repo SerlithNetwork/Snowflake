@@ -12,7 +12,6 @@ import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +20,7 @@ public final class Paperclip {
 
     public static void main(final String[] args) {
         if (Path.of("").toAbsolutePath().toString().contains("!")) {
-            System.err.println("Paperclip may not run in a directory containing '!'. Please rename the affected folder.");
+            System.err.println("Snowflake may not run in a directory containing '!'. Please rename the affected folder.");
             System.exit(1);
         }
 
